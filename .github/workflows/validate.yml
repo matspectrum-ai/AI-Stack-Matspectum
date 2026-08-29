@@ -1,0 +1,23 @@
+name: Validate AI Stack
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate shell syntax and command routing
+        shell: bash
+        run: |
+          bash -n ai-stack scripts/*.sh
+          ./ai-stack profile list >/dev/null
+          ./ai-stack bootstrap --help >/dev/null
+          ./ai-stack init --help >/dev/null
+          echo "AI Stack validation: PASS"
