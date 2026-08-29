@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+
+usage() {
+  cat <<'EOF'
+AI Stack Matspectrum
+
+Usage:
+  ai-stack bootstrap [options]
+  ai-stack doctor
+  ai-stack profile <name|list> [--project]
+  ai-stack init [path] [--sdd]
+  ai-stack help
+
+Examples:
+  ./ai-stack bootstrap
+  ./ai-stack bootstrap --with-pi --with-browser --with-sdd
+  ./ai-stack profile design
+  ./ai-stack profile design --project
+  ./ai-stack init ~/projects/my-app --sdd
+EOF
+}
+
+cmd="${1:-help}"
+shift || true
+
+case "$cmd" in
+  bootstrap) exec "$ROOT/scripts/bootstrap.sh" "$@" ;;
+  doctor) exec "$ROOT/scripts/doctor.sh" "$@" ;;
+  profile) exec "$ROOT/scripts/profile.sh" "$@" ;;
+  init) exec "$ROOT/scripts/init-project.sh" "$@" ;;
+  help|-h|--help) usage ;;
+  *)
+    echo "Unknown command: $cmd" >&2
+    usage >&2
+    exit 2
+    ;;
+esac

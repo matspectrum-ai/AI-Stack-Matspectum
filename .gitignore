@@ -1,0 +1,13 @@
+# Local/editor
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Local stack state
+.ai-stack-local/
+
+# Never commit secrets
+.env
+.env.*
+!.env.example
