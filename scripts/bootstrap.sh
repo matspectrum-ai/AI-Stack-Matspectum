@@ -23,7 +23,7 @@ Default:
 Options:
   --full             Install recommended workstation stack + recommended skill profiles
   --with-pi          Install Pi coding agent too
-  --with-browser     Install Playwright CLI + browser agent skills
+  --with-browser     Install Playwright CLI + agent-browser + browser agent skills
   --with-sdd         Install OpenSpec CLI
   --no-core-skills   Do not install the default global core skills
   -h, --help
@@ -81,8 +81,18 @@ if [[ "$WITH_BROWSER" -eq 1 ]]; then
   fi
   info "Installing Playwright agent skills"
   playwright-cli install --skills
-  info "Ensuring the default browser is installed"
+  info "Ensuring the Playwright default browser is installed"
   playwright-cli install-browser
+
+  if ! has agent-browser; then
+    npm_global_install "agent-browser"
+  else
+    ok "agent-browser already installed: $(agent-browser --version 2>/dev/null || echo present)"
+  fi
+  info "Ensuring agent-browser Chrome is installed"
+  if ! agent-browser install; then
+    warn "agent-browser browser install failed. On Linux, try: agent-browser install --with-deps"
+  fi
 fi
 
 if [[ "$WITH_CORE_SKILLS" -eq 1 ]]; then
