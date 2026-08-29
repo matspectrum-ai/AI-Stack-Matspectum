@@ -16,7 +16,8 @@ OpenCode (default harness)
    +-- portable Agent Skills
    +-- CLI tools
    +-- project-native tests / lint / typecheck
-   +-- Playwright CLI for browser verification
+   +-- Playwright CLI for persistent E2E verification
+   +-- agent-browser for interactive/runtime verification
    +-- optional OpenSpec for formal SDD
    +-- optional Pi for harness experiments
    |
@@ -73,25 +74,26 @@ List profiles:
 ./ai-stack profile list
 ```
 
-Install globally for OpenCode (and Pi too when Pi is installed):
+Universal/workflow profiles:
 
 ```bash
 ./ai-stack profile core
-./ai-stack profile design
 ./ai-stack profile long-autonomy
-./ai-stack profile database-postgres
 ./ai-stack profile security
-./ai-stack profile motion
 ```
 
-Install a profile into one project instead of globally:
+Framework/domain/provider profiles should usually be installed per project:
 
 ```bash
 cd ~/projects/my-app
-/path/to/AI-Stack-Matspectum/ai-stack profile design --project
+/path/to/AI-Stack-Matspectum/ai-stack profile nextjs --project
+/path/to/AI-Stack-Matspectum/ai-stack profile supabase --project
+/path/to/AI-Stack-Matspectum/ai-stack profile better-auth --project
+/path/to/AI-Stack-Matspectum/ai-stack profile clerk-nextjs --project
+/path/to/AI-Stack-Matspectum/ai-stack profile stripe --project
 ```
 
-Profiles intentionally overlap as little as possible.
+See [`docs/PROFILES.md`](docs/PROFILES.md) for the full routing matrix.
 
 ### Core
 
@@ -101,6 +103,64 @@ Stable workflow skills used across most software projects:
 - `mattpocock/skills`: `tdd`
 - `mattpocock/skills`: `code-review`
 - `mattpocock/skills`: `handoff`
+
+### Next.js
+
+The `nextjs` profile installs the official `vercel/next.js` `next-dev-loop` workflow skill.
+
+```bash
+ai-stack profile nextjs --project
+```
+
+Current `next-dev-loop` is intended for Next.js 16.3+ and combines Next.js runtime introspection with `agent-browser`. The stack therefore treats browser tooling as two different layers:
+
+- Playwright CLI/tests: persistent E2E and regression evidence.
+- `agent-browser`: interactive agent/runtime inspection.
+
+Install both browser layers with:
+
+```bash
+ai-stack bootstrap --with-browser
+```
+
+### SaaS / full-stack composition
+
+There is intentionally no giant generic "SaaS expert" skill. A SaaS is composed from the technologies it actually uses.
+
+For a provider-neutral Next.js SaaS base:
+
+```bash
+ai-stack profile saas-nextjs --project
+```
+
+This adds:
+
+```text
+core workflow skills
++ official Next.js runtime workflow
++ security workflow
+```
+
+Then choose only the providers in the project:
+
+```bash
+# Supabase products + Postgres
+ai-stack profile supabase --project
+
+# Pick ONE normal auth path
+ai-stack profile better-auth --project
+# OR
+ai-stack profile clerk-nextjs --project
+
+# Only if Stripe is actually used
+ai-stack profile stripe --project
+
+# UI/design only when relevant
+ai-stack profile design --project
+ai-stack profile shadcn --project
+```
+
+This is deliberately compositional: framework knowledge, database/auth/billing knowledge and verification remain independent.
 
 ### Design
 
@@ -112,17 +172,51 @@ Complementary UI/design capabilities:
 
 Do not invoke all three for every frontend task. Route by intent.
 
+### Supabase / Postgres
+
+Generic Postgres only:
+
+```bash
+ai-stack profile database-postgres --project
+```
+
+Full Supabase project:
+
+```bash
+ai-stack profile supabase --project
+```
+
+The full profile includes the official Supabase skill for Database, Auth, Edge Functions, Realtime, Storage, SSR integrations and related workflows plus the Postgres best-practices skill.
+
+### Authentication
+
+Better Auth:
+
+```bash
+ai-stack profile better-auth --project
+```
+
+Clerk + Next.js:
+
+```bash
+ai-stack profile clerk-nextjs --project
+```
+
+Do not install both unless you are intentionally migrating auth systems.
+
+### Stripe
+
+```bash
+ai-stack profile stripe --project
+```
+
+This installs Stripe's official Agent Skills from `https://docs.stripe.com`. It is not part of the universal core because many SaaS/payment systems do not use Stripe.
+
 ### Long autonomy
 
 - `leonxlnx/unlazy`: `unlazy`
 
 Use on substantial tasks where completion needs observable gates. Do not make every small edit produce a gate ledger.
-
-### Database / Postgres
-
-- `supabase/agent-skills`: `supabase-postgres-best-practices`
-
-Useful for Postgres schema, RLS, indexing, query and performance work. It is not a generic backend skill.
 
 ### Security
 
@@ -175,13 +269,24 @@ Then edit the generated files. Generic templates should not remain generic.
 
 ## Browser verification
 
-Install Playwright's agent CLI:
+Install both browser layers:
 
 ```bash
 ./ai-stack bootstrap --with-browser
 ```
 
-This installs `@playwright/cli` and its agent skills. Use it interactively for visual/browser feedback while keeping normal Playwright tests in the target project's own test suite.
+This installs:
+
+- `@playwright/cli` + Playwright agent skills/browser
+- `agent-browser` + its Chrome runtime
+
+On Linux, if `agent-browser install` reports missing system libraries, run:
+
+```bash
+agent-browser install --with-deps
+```
+
+Use browser exploration for feedback while keeping normal Playwright tests in the target project's own test suite.
 
 ## Pi
 
@@ -204,6 +309,7 @@ The portable skill layer is targeted at both harnesses when Pi is present.
 - vector-memory/RAG for every repository
 - arbitrary mega skill packs
 - infinite Ralph loops
+- framework/provider skills globally when the project does not use them
 
 Those can be justified by a concrete problem later. They are not universal prerequisites.
 
@@ -222,12 +328,15 @@ Review upstream changes before using updated skills in sensitive workflows.
 ├── ai-stack
 ├── AGENTS.md
 ├── docs/
+│   ├── ARCHITECTURE.md
+│   ├── PROFILES.md
+│   └── SECURITY.md
 ├── profiles/
 ├── scripts/
 └── templates/
 ```
 
-See `docs/ARCHITECTURE.md` for the design rationale and `docs/SECURITY.md` for the skill supply-chain policy.
+See `docs/ARCHITECTURE.md` for the design rationale, `docs/PROFILES.md` for profile composition and `docs/SECURITY.md` for the skill supply-chain policy.
 
 ## License
 
