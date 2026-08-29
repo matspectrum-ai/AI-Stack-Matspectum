@@ -16,7 +16,7 @@ Usage:
 
 Examples:
   ./ai-stack bootstrap
-  ./ai-stack bootstrap --with-pi --with-browser --with-sdd
+  ./ai-stack bootstrap --full
   ./ai-stack profile design
   ./ai-stack profile design --project
   ./ai-stack init ~/projects/my-app --sdd

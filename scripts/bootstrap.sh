@@ -9,6 +9,7 @@ WITH_PI=0
 WITH_BROWSER=0
 WITH_SDD=0
 WITH_CORE_SKILLS=1
+FULL=0
 
 usage() {
   cat <<'EOF'
@@ -20,6 +21,7 @@ Default:
   - installs the global core skill profile
 
 Options:
+  --full             Install recommended workstation stack + recommended skill profiles
   --with-pi          Install Pi coding agent too
   --with-browser     Install Playwright CLI + browser agent skills
   --with-sdd         Install OpenSpec CLI
@@ -30,6 +32,7 @@ EOF
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --full) FULL=1; WITH_PI=1; WITH_BROWSER=1; WITH_SDD=1 ;;
     --with-pi) WITH_PI=1 ;;
     --with-browser) WITH_BROWSER=1 ;;
     --with-sdd) WITH_SDD=1 ;;
@@ -83,7 +86,11 @@ if [[ "$WITH_BROWSER" -eq 1 ]]; then
 fi
 
 if [[ "$WITH_CORE_SKILLS" -eq 1 ]]; then
-  "$ROOT/scripts/profile.sh" core
+  if [[ "$FULL" -eq 1 ]]; then
+    "$ROOT/scripts/profile.sh" all-recommended
+  else
+    "$ROOT/scripts/profile.sh" core
+  fi
 fi
 
 mkdir -p "$HOME/.local/bin"

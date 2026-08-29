@@ -47,7 +47,10 @@ cd AI-Stack-Matspectum
 # Core: OpenCode + core engineering skills
 ./ai-stack bootstrap
 
-# Recommended workstation setup
+# Full recommended workstation stack in one command
+./ai-stack bootstrap --full
+
+# Or compose it explicitly
 ./ai-stack bootstrap --with-pi --with-browser --with-sdd
 
 # Verify the installation
