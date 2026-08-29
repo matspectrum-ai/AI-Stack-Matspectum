@@ -12,9 +12,7 @@ SCOPE="global"
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --project) SCOPE="project" ;;
-    -h|--help)
-      PROFILE="help"
-      ;;
+    -h|--help) PROFILE="help" ;;
     *) die "Unknown option: $1" ;;
   esac
   shift
@@ -23,18 +21,36 @@ done
 list_profiles() {
   cat <<'EOF'
 Available profiles:
+
+Workflow / universal
   core                 Debugging, TDD, code review, handoff
+  long-autonomy        Observable completion gates (Unlazy)
+  security             Context-first audit + Semgrep workflow
+
+Frontend / design
   design               Original UI + product refinement + high-end frontend
   design-redesign      Existing-project redesign/refinement
   motion               Build and review UI motion
-  long-autonomy        Observable completion gates (Unlazy)
-  database-postgres    Postgres best practices maintained by Supabase
-  security             Context-first audit + Semgrep workflow
   shadcn               Official shadcn/ui skill
-  all-recommended      core + design + motion + long-autonomy + database-postgres + security
+  nextjs               Official Next.js runtime verification workflow
+
+Backend / data
+  database-postgres    Postgres best practices maintained by Supabase
+  supabase             Comprehensive Supabase + Postgres best practices
+
+Authentication
+  better-auth          Better Auth setup, best practices and security
+  clerk-nextjs         Clerk setup + Next.js patterns + auth testing
+
+Billing
+  stripe               Official Stripe agent skills from docs.stripe.com
+
+Composed application profiles
+  saas-nextjs          Core + Next.js + security. Provider-neutral SaaS base.
+  all-recommended      Universal workstation skills only; no framework/provider lock-in
 
 Profiles are installed globally by default.
-Use --project to install only into the current project.
+Use --project for framework/provider/domain profiles in real projects.
 EOF
 }
 
@@ -64,6 +80,15 @@ install_skill() {
   info "Installing $skill from $source [$SCOPE -> ${agents[*]}]"
   DISABLE_TELEMETRY=1 npx --yes skills add "$source" \
     --skill "$skill" \
+    "${scope_args[@]}" \
+    "${agent_args[@]}" \
+    --yes
+}
+
+install_skill_source() {
+  local source="$1"
+  info "Installing skills from $source [$SCOPE -> ${agents[*]}]"
+  DISABLE_TELEMETRY=1 npx --yes skills add "$source" \
     "${scope_args[@]}" \
     "${agent_args[@]}" \
     --yes
@@ -100,6 +125,11 @@ profile_database_postgres() {
   install_skill "https://github.com/supabase/agent-skills" "supabase-postgres-best-practices"
 }
 
+profile_supabase() {
+  install_skill "https://github.com/supabase/agent-skills" "supabase"
+  install_skill "https://github.com/supabase/agent-skills" "supabase-postgres-best-practices"
+}
+
 profile_security() {
   install_skill "https://github.com/trailofbits/skills" "audit-context-building"
   install_skill "https://github.com/trailofbits/skills" "semgrep"
@@ -109,6 +139,40 @@ profile_shadcn() {
   install_skill "https://github.com/shadcn-ui/ui" "shadcn"
 }
 
+profile_nextjs() {
+  install_skill "https://github.com/vercel/next.js" "next-dev-loop"
+  info "next-dev-loop requires Next.js 16.3+ and agent-browser >=0.31.1."
+  info "Run 'ai-stack bootstrap --with-browser' if agent-browser is missing."
+}
+
+profile_better_auth() {
+  install_skill "https://github.com/better-auth/skills" "better-auth-best-practices"
+  install_skill "https://github.com/better-auth/skills" "better-auth-security-best-practices"
+  install_skill "https://github.com/better-auth/skills" "create-auth"
+}
+
+profile_clerk_nextjs() {
+  install_skill "https://github.com/clerk/skills" "clerk"
+  install_skill "https://github.com/clerk/skills" "clerk-setup"
+  install_skill "https://github.com/clerk/skills" "clerk-nextjs-patterns"
+  install_skill "https://github.com/clerk/skills" "clerk-testing"
+}
+
+profile_stripe() {
+  install_skill_source "https://docs.stripe.com"
+}
+
+profile_saas_nextjs() {
+  profile_core
+  profile_nextjs
+  profile_security
+  info "SaaS base installed without vendor lock-in. Add only the providers the project actually uses:"
+  info "  ai-stack profile supabase --project"
+  info "  ai-stack profile better-auth --project   OR   ai-stack profile clerk-nextjs --project"
+  info "  ai-stack profile stripe --project       (only for Stripe billing/payments)"
+  info "  ai-stack profile design --project       (when UI/design work requires it)"
+}
+
 case "$PROFILE" in
   core) profile_core ;;
   design) profile_design ;;
@@ -116,8 +180,14 @@ case "$PROFILE" in
   motion) profile_motion ;;
   long-autonomy) profile_long_autonomy ;;
   database-postgres) profile_database_postgres ;;
+  supabase) profile_supabase ;;
   security) profile_security ;;
   shadcn) profile_shadcn ;;
+  nextjs) profile_nextjs ;;
+  better-auth) profile_better_auth ;;
+  clerk-nextjs) profile_clerk_nextjs ;;
+  stripe) profile_stripe ;;
+  saas-nextjs) profile_saas_nextjs ;;
   all-recommended)
     profile_core
     profile_design
