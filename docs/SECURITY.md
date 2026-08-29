@@ -28,6 +28,23 @@ Inspect commands that can:
 - install packages,
 - run scanners/rules downloaded at runtime.
 
+## Provider skills
+
+Framework/provider profiles are normally project-local. Do not globally install provider context that unrelated repositories do not use.
+
+Provider skills can describe or invoke CLIs/APIs with side effects. Authentication, billing, infrastructure and database operations deserve stricter review than read-only framework guidance.
+
+### Financial/payment operations
+
+A Stripe/payment skill does not imply permission to perform financial mutations. Treat operations such as charging, refunding, canceling subscriptions, finalizing invoices, changing payout settings or modifying production payment configuration as approval-gated actions.
+
+Prefer:
+- test/sandbox environments by default,
+- restricted credentials/scopes,
+- idempotency keys for retryable payment mutations,
+- explicit human approval before irreversible or monetary actions,
+- webhook/contract tests before production changes.
+
 ## Updates
 
 `npx skills update` changes executable/procedural dependencies. Do not assume an updated skill has identical behavior.
