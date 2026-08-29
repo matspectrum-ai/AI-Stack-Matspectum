@@ -46,6 +46,7 @@ fi
 check_optional pi "Pi"
 check_optional openspec "OpenSpec"
 check_optional playwright-cli "Playwright CLI"
+check_optional agent-browser "agent-browser"
 check_optional podman "Podman"
 check_optional just "just"
 check_optional rg "ripgrep"
