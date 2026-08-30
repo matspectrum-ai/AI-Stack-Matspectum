@@ -11,14 +11,17 @@ Usage:
   ai-stack bootstrap [options]
   ai-stack doctor
   ai-stack profile <name|list> [--project]
+  ai-stack toolchain <name|list>
   ai-stack init [path] [--sdd]
   ai-stack help
 
 Examples:
   ./ai-stack bootstrap
   ./ai-stack bootstrap --full
-  ./ai-stack profile design
   ./ai-stack profile design --project
+  ./ai-stack profile prisma --project
+  ./ai-stack profile cloudflare --project
+  ./ai-stack toolchain api-contracts
   ./ai-stack init ~/projects/my-app --sdd
 EOF
 }
@@ -30,6 +33,7 @@ case "$cmd" in
   bootstrap) exec "$ROOT/scripts/bootstrap.sh" "$@" ;;
   doctor) exec "$ROOT/scripts/doctor.sh" "$@" ;;
   profile) exec "$ROOT/scripts/profile.sh" "$@" ;;
+  toolchain) exec bash "$ROOT/scripts/toolchain.sh" "$@" ;;
   init) exec "$ROOT/scripts/init-project.sh" "$@" ;;
   help|-h|--help) usage ;;
   *)
