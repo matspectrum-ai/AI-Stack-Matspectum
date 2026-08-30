@@ -20,46 +20,58 @@ done
 
 list_profiles() {
   cat <<'EOF'
-Available profiles:
+Available capability profiles:
 
 Workflow / universal
-  core                 Debugging, TDD, code review, handoff
-  long-autonomy        Observable completion gates (Unlazy)
-  security             Context-first audit + Semgrep workflow
+  core                       Debugging, TDD, code review, handoff
+  long-autonomy              Observable completion gates (Unlazy)
+  security                   Context-first audit + Semgrep workflow
 
-Frontend / design
-  design               Original UI + product refinement + high-end frontend
-  design-redesign      Existing-project redesign/refinement
-  motion               Build and review UI motion
-  shadcn               Official shadcn/ui skill
-  nextjs               Official Next.js runtime verification workflow
+Framework / frontend
+  nextjs                     Next.js runtime verification loop
+  nextjs-cache-adoption      Adopt Next.js Cache Components
+  nextjs-cache-optimize      TDD loop for instant Cache Components navigation
+  nextjs-partial-prefetch    Adopt Next.js Partial Prefetching
+  vite                       Vite configuration/build knowledge
+  shadcn                     Official shadcn/ui skill
+
+Testing / quality
+  vitest                     Vitest configuration, mocking, coverage and tests
+  web-quality                Evidence-led web quality audit
+  web-performance            Evidence-led web performance optimization
+
+Design / UX
+  design                     Original UI + product refinement + high-end frontend
+  design-redesign            Existing-project redesign/refinement
+  motion                     Build and review UI motion
 
 Backend / data
-  database-postgres    Postgres best practices maintained by Supabase
-  supabase             Comprehensive Supabase + Postgres best practices
-  prisma               Official Prisma ORM CLI/client/database skills
-  drizzle-experimental Install Drizzle Kit bundled skills from the project's local CLI
+  database-postgres          Postgres best practices maintained by Supabase
+  supabase                   Comprehensive Supabase + Postgres best practices
+  prisma                     Official Prisma ORM CLI/client/database skills
+  drizzle-experimental       Project-bundled Drizzle Kit skills (experimental)
 
 Infrastructure / platform
-  cloudflare           Official Cloudflare platform + Workers best practices
-  cloudflare-agents    Official Cloudflare Agents SDK skill
+  cloudflare                 Cloudflare platform + Workers best practices
+  cloudflare-agents          Cloudflare Agents SDK skill
 
 Authentication
-  better-auth          Better Auth setup, best practices and security
-  clerk-nextjs         Clerk setup + Next.js patterns + auth testing
+  better-auth                Better Auth setup, best practices and security
+  clerk-nextjs               Clerk setup + Next.js patterns + auth testing
 
 Billing
-  stripe               Official Stripe agent skills from docs.stripe.com
+  stripe                     Official Stripe agent skills from docs.stripe.com
 
 Observability
-  sentry-nextjs        Official Sentry Next.js setup + tracing + logging skills
+  sentry-nextjs              Sentry Next.js setup + tracing + logging
 
-Composed application profiles
-  saas-nextjs          Core + Next.js + security. Provider-neutral SaaS base.
-  all-recommended      Universal workstation skills only; no framework/provider lock-in
+Presets / convenience compositions
+  saas-nextjs                Core + Next.js + security; provider-neutral SaaS base
+  all-recommended            Universal workstation skills only; no provider lock-in
 
 Profiles are installed globally by default.
 Use --project for framework/provider/domain profiles in real projects.
+Prefer `ai-stack detect` instead of collecting profiles manually.
 EOF
 }
 
@@ -124,6 +136,49 @@ profile_core() {
   install_skill "https://github.com/mattpocock/skills" "handoff"
 }
 
+profile_long_autonomy() {
+  install_skill "https://github.com/leonxlnx/unlazy" "unlazy"
+}
+
+profile_security() {
+  install_skill "https://github.com/trailofbits/skills" "audit-context-building"
+  install_skill "https://github.com/trailofbits/skills" "semgrep"
+}
+
+profile_nextjs() {
+  install_skill "https://github.com/vercel/next.js" "next-dev-loop"
+  info "next-dev-loop requires Next.js 16.3+ with Turbopack and agent-browser >=0.31.1."
+  info "Run 'ai-stack bootstrap --with-browser' if browser tooling is missing."
+}
+
+profile_nextjs_cache_adoption() {
+  install_skill "https://github.com/vercel/next.js" "next-cache-components-adoption"
+}
+
+profile_nextjs_cache_optimize() {
+  install_skill "https://github.com/vercel/next.js" "next-cache-components-optimizer"
+}
+
+profile_nextjs_partial_prefetch() {
+  install_skill "https://github.com/vercel/next.js" "next-partial-prefetching-adoption"
+}
+
+profile_vite() {
+  install_skill "https://github.com/antfu/skills" "vite"
+}
+
+profile_vitest() {
+  install_skill "https://github.com/antfu/skills" "vitest"
+}
+
+profile_web_quality() {
+  install_skill "https://github.com/addyosmani/web-quality-skills" "web-quality-audit"
+}
+
+profile_web_performance() {
+  install_skill "https://github.com/addyosmani/web-quality-skills" "performance"
+}
+
 profile_design() {
   install_skill "https://github.com/anthropics/skills" "frontend-design"
   install_skill "https://github.com/pbakaus/impeccable" "impeccable"
@@ -140,8 +195,8 @@ profile_motion() {
   install_skill "https://github.com/emilkowalski/skills" "review-animations"
 }
 
-profile_long_autonomy() {
-  install_skill "https://github.com/leonxlnx/unlazy" "unlazy"
+profile_shadcn() {
+  install_skill "https://github.com/shadcn-ui/ui" "shadcn"
 }
 
 profile_database_postgres() {
@@ -166,21 +221,6 @@ profile_drizzle_experimental() {
   info "Installing Agent Skills bundled by the project's drizzle-kit"
   "$drizzle_bin" skills
   warn "Drizzle Agent Skills are still an emerging/RC surface. Keep them project-local and review upgrades."
-}
-
-profile_security() {
-  install_skill "https://github.com/trailofbits/skills" "audit-context-building"
-  install_skill "https://github.com/trailofbits/skills" "semgrep"
-}
-
-profile_shadcn() {
-  install_skill "https://github.com/shadcn-ui/ui" "shadcn"
-}
-
-profile_nextjs() {
-  install_skill "https://github.com/vercel/next.js" "next-dev-loop"
-  info "next-dev-loop requires Next.js 16.3+ and agent-browser >=0.31.1."
-  info "Run 'ai-stack bootstrap --with-browser' if agent-browser is missing."
 }
 
 profile_cloudflare() {
@@ -221,30 +261,29 @@ profile_saas_nextjs() {
   profile_core
   profile_nextjs
   profile_security
-  info "SaaS base installed without vendor lock-in. Add only the providers the project actually uses:"
-  info "  ai-stack profile supabase --project"
-  info "  ai-stack profile prisma --project"
-  info "  ai-stack profile drizzle-experimental --project"
-  info "  ai-stack profile better-auth --project   OR   ai-stack profile clerk-nextjs --project"
-  info "  ai-stack profile stripe --project       (only for Stripe billing/payments)"
-  info "  ai-stack profile sentry-nextjs --project (when using Sentry)"
-  info "  ai-stack profile design --project       (when UI/design work requires it)"
-  info "  ai-stack toolchain api-contracts         (when the SaaS exposes an OpenAPI contract)"
+  info "Convenience preset installed. Prefer 'ai-stack detect' for general projects."
 }
 
 case "$PROFILE" in
   core) profile_core ;;
+  long-autonomy) profile_long_autonomy ;;
+  security) profile_security ;;
+  nextjs) profile_nextjs ;;
+  nextjs-cache-adoption) profile_nextjs_cache_adoption ;;
+  nextjs-cache-optimize) profile_nextjs_cache_optimize ;;
+  nextjs-partial-prefetch) profile_nextjs_partial_prefetch ;;
+  vite) profile_vite ;;
+  vitest) profile_vitest ;;
+  web-quality) profile_web_quality ;;
+  web-performance) profile_web_performance ;;
   design) profile_design ;;
   design-redesign) profile_design_redesign ;;
   motion) profile_motion ;;
-  long-autonomy) profile_long_autonomy ;;
+  shadcn) profile_shadcn ;;
   database-postgres) profile_database_postgres ;;
   supabase) profile_supabase ;;
   prisma) profile_prisma ;;
   drizzle-experimental) profile_drizzle_experimental ;;
-  security) profile_security ;;
-  shadcn) profile_shadcn ;;
-  nextjs) profile_nextjs ;;
   cloudflare) profile_cloudflare ;;
   cloudflare-agents) profile_cloudflare_agents ;;
   better-auth) profile_better_auth ;;
