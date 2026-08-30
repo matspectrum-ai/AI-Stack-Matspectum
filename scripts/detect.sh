@@ -41,32 +41,38 @@ toolchains=()
 signals=()
 notes=()
 
-add_unique() {
-  local array_name="$1"
-  local value="$2"
-  local existing
-  eval 'for existing in "${'"$array_name"'[@]:-}"; do [[ "$existing" == "$value" ]] && return 0; done'
-  eval "$array_name+=(\"\$value\")"
+contains() {
+  local needle="$1"
+  shift || true
+  local item
+  for item in "$@"; do
+    [[ "$item" == "$needle" ]] && return 0
+  done
+  return 1
 }
 
-signal() { add_unique signals "$1"; }
-profile() { add_unique profiles "$1"; }
-optional_profile() { add_unique optional_profiles "$1"; }
-experimental_profile() { add_unique experimental_profiles "$1"; }
-toolchain() { add_unique toolchains "$1"; }
-note() { add_unique notes "$1"; }
+signal() { contains "$1" "${signals[@]}" || signals+=("$1"); }
+profile() { contains "$1" "${profiles[@]}" || profiles+=("$1"); }
+optional_profile() { contains "$1" "${optional_profiles[@]}" || optional_profiles+=("$1"); }
+experimental_profile() { contains "$1" "${experimental_profiles[@]}" || experimental_profiles+=("$1"); }
+toolchain() { contains "$1" "${toolchains[@]}" || toolchains+=("$1"); }
+note() { contains "$1" "${notes[@]}" || notes+=("$1"); }
 
-mapfile -d '' manifests < <(find "$PROJECT" -maxdepth 5 -type f -name package.json -not -path '*/node_modules/*' -not -path '*/.next/*' -print0 2>/dev/null || true)
+manifest_list="$(find "$PROJECT" -maxdepth 5 -type f -name package.json -not -path '*/node_modules/*' -not -path '*/.next/*' -print 2>/dev/null || true)"
 
 package_has() {
   local dep="$1"
-  local manifest
-  [[ ${#manifests[@]} -gt 0 ]] || return 1
-  for manifest in "${manifests[@]}"; do
-    if grep -Eq '"'"$(printf '%s' "$dep" | sed 's/[][(){}.*+?^$|\\/]/\\&/g')"'"[[:space:]]*:' "$manifest" 2>/dev/null; then
+  local escaped manifest
+  [[ -n "$manifest_list" ]] || return 1
+  escaped="$(printf '%s' "$dep" | sed 's/[][(){}.*+?^$|\\/]/\\&/g')"
+  while IFS= read -r manifest; do
+    [[ -n "$manifest" ]] || continue
+    if grep -Eq '"'"$escaped"'"[[:space:]]*:' "$manifest" 2>/dev/null; then
       return 0
     fi
-  done
+  done <<EOF
+$manifest_list
+EOF
   return 1
 }
 
@@ -75,14 +81,11 @@ has_file_glob() {
   find "$PROJECT" -maxdepth 5 -type f -path "$pattern" -print -quit 2>/dev/null | grep -q .
 }
 
-# Ecosystem / language signals. These do not all map to skills yet; unknown
-# domains remain visible instead of being silently treated as unsupported.
-[[ ${#manifests[@]} -gt 0 ]] && signal "Node.js / package.json"
+[[ -n "$manifest_list" ]] && signal "Node.js / package.json"
 [[ -f "$PROJECT/pyproject.toml" || -f "$PROJECT/requirements.txt" ]] && { signal "Python"; note "Python project detected; use project-native pytest/ruff/type-checking. No generic Python mega-skill is auto-applied."; }
 [[ -f "$PROJECT/Cargo.toml" ]] && { signal "Rust"; note "Rust project detected; cargo fmt/clippy/test remain deterministic verification sources."; }
 [[ -f "$PROJECT/go.mod" ]] && { signal "Go"; note "Go project detected; gofmt/go vet/go test remain deterministic verification sources."; }
 
-# Frontend/framework capabilities.
 if package_has next; then
   signal "Next.js"
   profile nextjs
@@ -95,13 +98,13 @@ if package_has next; then
   optional_profile react-view-transitions
   note "next-dev-loop requires Next.js 16.3+ with Turbopack; verify the installed framework version before relying on runtime MCP checks."
 
-  if grep -R -E 'cacheComponents[[:space:]]*:[[:space:]]*true' "$PROJECT"/next.config.* >/dev/null 2>&1; then
+  if grep -E 'cacheComponents[[:space:]]*:[[:space:]]*true' "$PROJECT"/next.config.* >/dev/null 2>&1; then
     signal "Next.js Cache Components"
     optional_profile nextjs-cache-optimize
   else
     optional_profile nextjs-cache-adoption
   fi
-  if grep -R -E 'partialPrefetching[[:space:]]*:[[:space:]]*true' "$PROJECT"/next.config.* >/dev/null 2>&1; then
+  if grep -E 'partialPrefetching[[:space:]]*:[[:space:]]*true' "$PROJECT"/next.config.* >/dev/null 2>&1; then
     signal "Next.js Partial Prefetching"
     profile nextjs-partial-prefetch
   fi
@@ -131,7 +134,6 @@ if [[ -f "$PROJECT/components.json" ]] || has_file_glob '*/components.json'; the
   profile shadcn
 fi
 
-# Data / ORM / auth / billing.
 if package_has '@prisma/client' || package_has prisma || [[ -f "$PROJECT/prisma/schema.prisma" ]]; then
   signal "Prisma"
   profile prisma
@@ -162,7 +164,6 @@ if package_has stripe; then
   profile stripe
 fi
 
-# Platform / observability.
 if package_has '@sentry/nextjs'; then
   signal "Sentry + Next.js"
   profile sentry-nextjs
@@ -183,29 +184,25 @@ if [[ -f "$PROJECT/vercel.json" || -d "$PROJECT/.vercel" ]]; then
   optional_profile vercel-optimize
 fi
 
-# API contract detection.
 if find "$PROJECT" -maxdepth 5 -type f \( -iname 'openapi.yaml' -o -iname 'openapi.yml' -o -iname 'openapi.json' -o -iname 'swagger.yaml' -o -iname 'swagger.yml' -o -iname 'swagger.json' \) -print -quit 2>/dev/null | grep -q .; then
   signal "OpenAPI contract"
   toolchain api-contracts
 fi
 
-# Browser testing is a workstation capability rather than a profile.
 if package_has '@playwright/test' || package_has playwright; then
   signal "Playwright"
   note "Playwright detected. Ensure workstation browser tooling exists with: ai-stack bootstrap --with-browser"
 fi
 
-# Always useful only when explicitly requested; do not auto-apply subjective or
-# long-running workflows based solely on static project detection.
 optional_profile long-autonomy
 
 if [[ "$FORMAT" == "machine" ]]; then
-  for item in "${profiles[@]:-}"; do [[ -n "$item" ]] && printf 'profile:%s\n' "$item"; done
-  for item in "${optional_profiles[@]:-}"; do [[ -n "$item" ]] && printf 'optional-profile:%s\n' "$item"; done
-  for item in "${experimental_profiles[@]:-}"; do [[ -n "$item" ]] && printf 'experimental-profile:%s\n' "$item"; done
-  for item in "${toolchains[@]:-}"; do [[ -n "$item" ]] && printf 'toolchain:%s\n' "$item"; done
-  for item in "${signals[@]:-}"; do [[ -n "$item" ]] && printf 'signal:%s\n' "$item"; done
-  for item in "${notes[@]:-}"; do [[ -n "$item" ]] && printf 'note:%s\n' "$item"; done
+  for item in "${profiles[@]}"; do printf 'profile:%s\n' "$item"; done
+  for item in "${optional_profiles[@]}"; do printf 'optional-profile:%s\n' "$item"; done
+  for item in "${experimental_profiles[@]}"; do printf 'experimental-profile:%s\n' "$item"; done
+  for item in "${toolchains[@]}"; do printf 'toolchain:%s\n' "$item"; done
+  for item in "${signals[@]}"; do printf 'signal:%s\n' "$item"; done
+  for item in "${notes[@]}"; do printf 'note:%s\n' "$item"; done
   exit 0
 fi
 
@@ -213,25 +210,13 @@ printf 'AI Stack capability detection\n\n'
 printf 'Project: %s\n' "$PROJECT"
 
 printf '\nDetected signals:\n'
-if [[ ${#signals[@]} -eq 0 ]]; then
-  printf '  (no known stack signals detected)\n'
-else
-  printf '  + %s\n' "${signals[@]}"
-fi
+if [[ ${#signals[@]} -eq 0 ]]; then printf '  (no known stack signals detected)\n'; else printf '  + %s\n' "${signals[@]}"; fi
 
 printf '\nRecommended project profiles (high confidence):\n'
-if [[ ${#profiles[@]} -eq 0 ]]; then
-  printf '  (none)\n'
-else
-  printf '  %s\n' "${profiles[@]}"
-fi
+if [[ ${#profiles[@]} -eq 0 ]]; then printf '  (none)\n'; else printf '  %s\n' "${profiles[@]}"; fi
 
 printf '\nOptional capabilities (intent-dependent):\n'
-if [[ ${#optional_profiles[@]} -eq 0 ]]; then
-  printf '  (none)\n'
-else
-  printf '  %s\n' "${optional_profiles[@]}"
-fi
+if [[ ${#optional_profiles[@]} -eq 0 ]]; then printf '  (none)\n'; else printf '  %s\n' "${optional_profiles[@]}"; fi
 
 if [[ ${#experimental_profiles[@]} -gt 0 ]]; then
   printf '\nExperimental capabilities (never auto-applied):\n'
@@ -239,11 +224,7 @@ if [[ ${#experimental_profiles[@]} -gt 0 ]]; then
 fi
 
 printf '\nDeterministic toolchains:\n'
-if [[ ${#toolchains[@]} -eq 0 ]]; then
-  printf '  (none)\n'
-else
-  printf '  %s\n' "${toolchains[@]}"
-fi
+if [[ ${#toolchains[@]} -eq 0 ]]; then printf '  (none)\n'; else printf '  %s\n' "${toolchains[@]}"; fi
 
 if [[ ${#notes[@]} -gt 0 ]]; then
   printf '\nNotes:\n'
