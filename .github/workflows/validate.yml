@@ -21,4 +21,13 @@ jobs:
           ./ai-stack toolchain list >/dev/null
           ./ai-stack bootstrap --help >/dev/null
           ./ai-stack init --help >/dev/null
+
+          # bootstrap installs ai-stack as a symlink in ~/.local/bin. Verify the
+          # installed form resolves back to this repository instead of looking
+          # for ~/.local/bin/scripts/*.
+          mkdir -p "$HOME/.local/bin"
+          ln -s "$PWD/ai-stack" "$HOME/.local/bin/ai-stack"
+          "$HOME/.local/bin/ai-stack" profile list >/dev/null
+          "$HOME/.local/bin/ai-stack" toolchain list >/dev/null
+
           echo "AI Stack validation: PASS"
