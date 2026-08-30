@@ -37,6 +37,12 @@ Frontend / design
 Backend / data
   database-postgres    Postgres best practices maintained by Supabase
   supabase             Comprehensive Supabase + Postgres best practices
+  prisma               Official Prisma ORM CLI/client/database skills
+  drizzle-experimental Install Drizzle Kit bundled skills from the project's local CLI
+
+Infrastructure / platform
+  cloudflare           Official Cloudflare platform + Workers best practices
+  cloudflare-agents    Official Cloudflare Agents SDK skill
 
 Authentication
   better-auth          Better Auth setup, best practices and security
@@ -44,6 +50,9 @@ Authentication
 
 Billing
   stripe               Official Stripe agent skills from docs.stripe.com
+
+Observability
+  sentry-nextjs        Official Sentry Next.js setup + tracing + logging skills
 
 Composed application profiles
   saas-nextjs          Core + Next.js + security. Provider-neutral SaaS base.
@@ -94,6 +103,11 @@ install_skill_source() {
     --yes
 }
 
+require_project_scope() {
+  local name="$1"
+  [[ "$SCOPE" == "project" ]] || die "$name is project-scoped. Re-run with --project from the target repository."
+}
+
 profile_core() {
   install_skill "https://github.com/mattpocock/skills" "diagnosing-bugs"
   install_skill "https://github.com/mattpocock/skills" "tdd"
@@ -130,6 +144,21 @@ profile_supabase() {
   install_skill "https://github.com/supabase/agent-skills" "supabase-postgres-best-practices"
 }
 
+profile_prisma() {
+  install_skill "https://github.com/prisma/skills" "prisma-cli"
+  install_skill "https://github.com/prisma/skills" "prisma-client-api"
+  install_skill "https://github.com/prisma/skills" "prisma-database-setup"
+}
+
+profile_drizzle_experimental() {
+  require_project_scope "drizzle-experimental"
+  local drizzle_bin="./node_modules/.bin/drizzle-kit"
+  [[ -x "$drizzle_bin" ]] || die "A compatible project-local drizzle-kit is required. Install the Drizzle version your project uses first; this stack will not silently fetch an RC."
+  info "Installing Agent Skills bundled by the project's drizzle-kit"
+  "$drizzle_bin" skills
+  warn "Drizzle Agent Skills are still an emerging/RC surface. Keep them project-local and review upgrades."
+}
+
 profile_security() {
   install_skill "https://github.com/trailofbits/skills" "audit-context-building"
   install_skill "https://github.com/trailofbits/skills" "semgrep"
@@ -143,6 +172,15 @@ profile_nextjs() {
   install_skill "https://github.com/vercel/next.js" "next-dev-loop"
   info "next-dev-loop requires Next.js 16.3+ and agent-browser >=0.31.1."
   info "Run 'ai-stack bootstrap --with-browser' if agent-browser is missing."
+}
+
+profile_cloudflare() {
+  install_skill "https://github.com/cloudflare/skills" "cloudflare"
+  install_skill "https://github.com/cloudflare/skills" "workers-best-practices"
+}
+
+profile_cloudflare_agents() {
+  install_skill "https://github.com/cloudflare/skills" "agents-sdk"
 }
 
 profile_better_auth() {
@@ -162,15 +200,26 @@ profile_stripe() {
   install_skill_source "https://docs.stripe.com"
 }
 
+profile_sentry_nextjs() {
+  install_skill "https://github.com/getsentry/sentry-agent-skills" "sentry-nextjs-sdk"
+  install_skill "https://github.com/getsentry/sentry-agent-skills" "sentry-setup-tracing"
+  install_skill "https://github.com/getsentry/sentry-agent-skills" "sentry-setup-logging"
+  info "For production issue fixing, Sentry's sentry-fix-issues skill additionally requires Sentry MCP access."
+}
+
 profile_saas_nextjs() {
   profile_core
   profile_nextjs
   profile_security
   info "SaaS base installed without vendor lock-in. Add only the providers the project actually uses:"
   info "  ai-stack profile supabase --project"
+  info "  ai-stack profile prisma --project"
+  info "  ai-stack profile drizzle-experimental --project"
   info "  ai-stack profile better-auth --project   OR   ai-stack profile clerk-nextjs --project"
   info "  ai-stack profile stripe --project       (only for Stripe billing/payments)"
+  info "  ai-stack profile sentry-nextjs --project (when using Sentry)"
   info "  ai-stack profile design --project       (when UI/design work requires it)"
+  info "  ai-stack toolchain api-contracts         (when the SaaS exposes an OpenAPI contract)"
 }
 
 case "$PROFILE" in
@@ -181,12 +230,17 @@ case "$PROFILE" in
   long-autonomy) profile_long_autonomy ;;
   database-postgres) profile_database_postgres ;;
   supabase) profile_supabase ;;
+  prisma) profile_prisma ;;
+  drizzle-experimental) profile_drizzle_experimental ;;
   security) profile_security ;;
   shadcn) profile_shadcn ;;
   nextjs) profile_nextjs ;;
+  cloudflare) profile_cloudflare ;;
+  cloudflare-agents) profile_cloudflare_agents ;;
   better-auth) profile_better_auth ;;
   clerk-nextjs) profile_clerk_nextjs ;;
   stripe) profile_stripe ;;
+  sentry-nextjs) profile_sentry_nextjs ;;
   saas-nextjs) profile_saas_nextjs ;;
   all-recommended)
     profile_core
