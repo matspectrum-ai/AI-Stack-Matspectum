@@ -48,7 +48,7 @@ PROJECT="$(cd -- "$PROJECT" && pwd -P)"
 home_dir="$(cd -- "$HOME" && pwd -P)"
 [[ "$PROJECT" != "$home_dir" ]] || die "Refusing to apply project profiles directly to HOME. cd into a real project or pass its path."
 
-mapfile -t plan < <("$ROOT/scripts/detect.sh" "$PROJECT" --machine)
+plan="$($ROOT/scripts/detect.sh "$PROJECT" --machine)"
 
 profiles=()
 optional_profiles=()
@@ -56,7 +56,8 @@ experimental_profiles=()
 toolchains=()
 notes=()
 
-for line in "${plan[@]}"; do
+while IFS= read -r line; do
+  [[ -n "$line" ]] || continue
   case "$line" in
     profile:*) profiles+=("${line#profile:}") ;;
     optional-profile:*) optional_profiles+=("${line#optional-profile:}") ;;
@@ -64,17 +65,15 @@ for line in "${plan[@]}"; do
     toolchain:*) toolchains+=("${line#toolchain:}") ;;
     note:*) notes+=("${line#note:}") ;;
   esac
-done
+done <<EOF
+$plan
+EOF
 
 printf 'AI Stack apply plan\n\n'
 printf 'Project: %s\n' "$PROJECT"
 
 printf '\nProfiles to install:\n'
-if [[ ${#profiles[@]} -eq 0 ]]; then
-  printf '  (none)\n'
-else
-  printf '  %s\n' "${profiles[@]}"
-fi
+if [[ ${#profiles[@]} -eq 0 ]]; then printf '  (none)\n'; else printf '  %s\n' "${profiles[@]}"; fi
 
 if [[ "$INCLUDE_OPTIONAL" -eq 1 ]]; then
   printf '\nOptional profiles included:\n'
