@@ -2,7 +2,7 @@
 
 A portable, open-source-first AI engineering stack for software development.
 
-The goal is not to install every agent framework. It is to provide a small universal core and add domain skills or deterministic toolchains only when a project needs them.
+The stack is capability-centric, not product-centric: a Next.js app, API, dashboard, CLI, library, fintech system, e-commerce project or SaaS is composed from the framework, data, design, testing, security and infrastructure capabilities it actually uses.
 
 ## Architecture
 
@@ -14,11 +14,10 @@ OpenCode (default harness)
    |
    +-- AGENTS.md / repository context
    +-- portable Agent Skills
-   +-- framework/provider profiles
+   +-- capability profiles selected per project
    +-- deterministic CLI toolchains
    +-- project-native tests / lint / typecheck
-   +-- Playwright CLI for persistent E2E verification
-   +-- agent-browser for interactive/runtime verification
+   +-- Playwright + agent-browser verification
    +-- optional OpenSpec for formal SDD
    +-- optional Pi for harness experiments
    |
@@ -31,13 +30,14 @@ Principles:
 - Open source tools first.
 - Harness-neutral repository context where possible.
 - Single strong agent + good tools before multi-agent orchestration.
-- Domain skills are opt-in profiles, not one giant global prompt.
+- Skills are organized by capability/domain instead of one giant global pack.
+- Detection is conservative: dependencies can be detected; user intent cannot.
 - Deterministic verification beats "the model says it is done".
 - CLI + Skill is preferred when an existing CLI already solves the integration.
 - MCP is reserved for remote/structured integrations that actually need it.
 - Long-running autonomy must have gates, budgets and stop conditions.
-- Third-party skills are dependencies: inspect source, license, scripts and permissions.
-- Official but immature agent surfaces are marked experimental instead of being promoted to defaults.
+- Third-party skills are executable dependencies: inspect source, license, scripts and permissions.
+- Experimental surfaces are marked experimental instead of silently becoming defaults.
 
 ## Quick start
 
@@ -47,358 +47,238 @@ Requirements: Linux/macOS, Git, Node.js 20+ and npm. OpenSpec specifically requi
 git clone https://github.com/matspectrum-ai/AI-Stack-Matspectum.git
 cd AI-Stack-Matspectum
 
-# Core: OpenCode + core engineering skills
-./ai-stack bootstrap
-
-# Full recommended workstation stack in one command
 ./ai-stack bootstrap --full
-
-# Or compose it explicitly
-./ai-stack bootstrap --with-pi --with-browser --with-sdd
-
-# Verify the installation
 ./ai-stack doctor
 ```
 
-Then connect your model/provider inside OpenCode:
+Then connect your provider inside OpenCode:
 
 ```bash
 opencode
 ```
 
-Use `/connect` in the TUI. This repository deliberately does not write API keys or replace your existing OpenCode configuration.
+Use `/connect` in the TUI. The repository does not store API keys or replace an existing provider configuration.
+
+## Project workflow
+
+Instead of manually collecting skills, inspect a real project:
+
+```bash
+cd ~/projects/my-app
+ai-stack detect .
+```
+
+Example output can recommend only the capabilities actually detected:
+
+```text
+Next.js
+React
+Prisma
+Vitest
+shadcn/ui
+OpenAPI
+
+Recommended profiles:
+  nextjs
+  react
+  react-components
+  prisma
+  vitest
+  shadcn
+
+Toolchains:
+  api-contracts
+```
+
+Preview and apply high-confidence recommendations:
+
+```bash
+ai-stack apply .
+```
+
+Include intent-dependent capabilities such as design, web-quality or View Transitions only when desired:
+
+```bash
+ai-stack apply . --include-optional
+```
+
+Experimental profiles are never auto-applied:
+
+```bash
+ai-stack apply . --include-experimental
+```
 
 ## Commands
 
 ```bash
 ai-stack bootstrap [options]
 ai-stack doctor
+ai-stack detect [path]
+ai-stack apply [path] [options]
 ai-stack profile <name|list> [--project]
 ai-stack toolchain <name|list>
 ai-stack init [path] [--sdd]
 ```
 
-Profiles install contextual Agent Skills. Toolchains install deterministic CLIs. They are intentionally separate concepts.
+Profiles install contextual Agent Skills. Toolchains install deterministic CLI capabilities. They are intentionally separate concepts.
 
-## Skill profiles
+## Capability profiles
 
-List profiles:
-
-```bash
-./ai-stack profile list
-```
-
-Universal/workflow profiles:
+List all profiles:
 
 ```bash
-./ai-stack profile core
-./ai-stack profile long-autonomy
-./ai-stack profile security
+ai-stack profile list
 ```
 
-Framework/domain/provider profiles should usually be installed per project:
+### Workflow
 
-```bash
-cd ~/projects/my-app
-ai-stack profile nextjs --project
-ai-stack profile prisma --project
-ai-stack profile supabase --project
-ai-stack profile cloudflare --project
-ai-stack profile better-auth --project
-ai-stack profile clerk-nextjs --project
-ai-stack profile stripe --project
-ai-stack profile sentry-nextjs --project
-```
-
-See [`docs/PROFILES.md`](docs/PROFILES.md) for maturity labels and the full routing matrix.
-
-### Core
-
-Stable workflow skills used across most software projects:
-
-- `mattpocock/skills`: `diagnosing-bugs`
-- `mattpocock/skills`: `tdd`
-- `mattpocock/skills`: `code-review`
-- `mattpocock/skills`: `handoff`
+- `core` — Matt Pocock debugging, TDD, review and handoff workflows.
+- `long-autonomy` — Unlazy observable completion gates.
+- `security` — Trail of Bits context-first audit + Semgrep.
 
 ### Next.js
 
-The `nextjs` profile installs the official `vercel/next.js` `next-dev-loop` workflow skill.
+- `nextjs` — official `vercel/next.js` `next-dev-loop` runtime verification.
+- `nextjs-cache-adoption` — adopt Cache Components.
+- `nextjs-cache-optimize` — test-driven instant shell/navigation optimization.
+- `nextjs-partial-prefetch` — adopt/verify Partial Prefetching.
 
-```bash
-ai-stack profile nextjs --project
-```
+`nextjs` is the normal project profile. The other three are task-specific and should not be loaded just because a project uses Next.js.
 
-Current `next-dev-loop` is intended for Next.js 16.3+ and combines Next.js runtime introspection with `agent-browser`.
+### React / Vercel engineering
 
-### Backend / ORM
+The Vercel Labs skill pack is exposed as separate capabilities rather than installed wholesale:
 
-Prisma uses the official Prisma Agent Skills:
+- `react` — `vercel-react-best-practices`: React/Next performance, async/data/rendering and bundle guidance.
+- `react-components` — `vercel-composition-patterns`: compound components, state lifting and scalable component APIs.
+- `react-view-transitions` — native React/Next View Transition patterns.
+- `vercel-web-design` — Vercel Web Interface Guidelines audit for UI/UX/accessibility.
+- `vercel-optimize` — metrics-first optimization for a deployed Vercel project.
 
-```bash
-ai-stack profile prisma --project
-```
+`react` and `react-components` are high-confidence recommendations when React is detected. The design audit, View Transitions and Vercel production optimization remain opt-in.
 
-This installs focused CLI, Client API and database-setup skills rather than the whole Prisma catalog.
+License note: the individual React/composition/View Transition manifests declare MIT. `vercel-labs/agent-skills` also declares MIT in its README, but its top-level LICENSE-file hygiene is still unresolved as of August 2026. `web-design-guidelines` fetches its rules from the separate MIT-licensed `vercel-labs/web-interface-guidelines` repository. AI Stack does not vendor or relicense this content.
 
-Drizzle's Agent Skills are official but still tied to its evolving RC/next-generation Drizzle Kit surface, so the stack marks them experimental and only invokes the project's own local CLI:
+### Design / UI
 
-```bash
-ai-stack profile drizzle-experimental --project
-```
+- `design` — Anthropic Frontend Design + Impeccable + Taste, routed by intent.
+- `design-redesign` — existing-product redesign/refinement.
+- `motion` — Emil Kowalski animation implementation/review.
+- `shadcn` — official shadcn/ui guidance.
+- `vercel-web-design` — interface-quality audit, not generative visual direction.
+- `react-components` — component architecture, not visual styling.
 
-The stack will not silently install a new/RC Drizzle version just to obtain skills.
+Do not invoke every design skill for every frontend task.
 
-### Supabase / Postgres
+### Testing / quality
 
-Generic Postgres only:
+- `vitest` — Vitest configuration, mocking, coverage and tests.
+- `web-quality` — broad evidence-led web quality audit.
+- `web-performance` — focused web performance optimization.
 
-```bash
-ai-stack profile database-postgres --project
-```
+Normal tests, lint, typecheck, browser/E2E evidence and contract checks remain the authoritative completion gates.
 
-Full Supabase project:
+### Backend / data
 
-```bash
-ai-stack profile supabase --project
-```
+- `database-postgres` — generic Postgres best practices.
+- `supabase` — Supabase products + Postgres guidance.
+- `prisma` — official Prisma CLI, Client API and database setup skills.
+- `drizzle-experimental` — project-bundled Drizzle Kit skills; explicit experimental opt-in.
 
-### Infrastructure / platform
+### Auth / billing / observability
 
-Cloudflare has an official Apache-2.0 Agent Skills repository:
+- `better-auth`
+- `clerk-nextjs`
+- `stripe`
+- `sentry-nextjs`
 
-```bash
-ai-stack profile cloudflare --project
-```
+These are provider-specific and should normally be project-local.
 
-For projects specifically using Cloudflare Agents SDK:
+### Platform / infrastructure
 
-```bash
-ai-stack profile cloudflare-agents --project
-```
+- `cloudflare` — Cloudflare platform + Workers best practices.
+- `cloudflare-agents` — Cloudflare Agents SDK.
+- `vercel-optimize` — Vercel production metrics/cost/performance audit.
 
-For Vercel deployment, the strict OSS stack uses the Apache-2.0 Vercel CLI rather than vendoring the current `vercel-labs/agent-skills` repository, whose top-level license-file hygiene is still unresolved:
+For deterministic Vercel operations use the open-source Vercel CLI toolchain:
 
 ```bash
 ai-stack toolchain vercel-cli
 ```
 
-### Observability
+## API engineering
 
-For a Next.js application using Sentry:
-
-```bash
-ai-stack profile sentry-nextjs --project
-```
-
-This installs official Sentry Next.js setup, tracing and logging guidance. Production issue-fixing skills that require Sentry MCP access are deliberately not enabled by default.
-
-### Authentication
-
-Better Auth:
-
-```bash
-ai-stack profile better-auth --project
-```
-
-Clerk + Next.js:
-
-```bash
-ai-stack profile clerk-nextjs --project
-```
-
-Do not install both unless you are intentionally migrating auth systems.
-
-### Stripe
-
-```bash
-ai-stack profile stripe --project
-```
-
-This installs Stripe's official Agent Skills from `https://docs.stripe.com`. It is not part of the universal core because many SaaS/payment systems do not use Stripe.
-
-### Design
-
-Complementary UI/design capabilities:
-
-- `anthropics/skills`: `frontend-design` — original UI direction.
-- `pbakaus/impeccable`: `impeccable` — product UI critique/refinement.
-- `leonxlnx/taste-skill`: `design-taste-frontend` — landing/marketing/high-end visual work.
-
-Do not invoke all three for every frontend task. Route by intent.
-
-### Long autonomy
-
-- `leonxlnx/unlazy`: `unlazy`
-
-Use on substantial tasks where completion needs observable gates. Do not make every small edit produce a gate ledger.
-
-### Security
-
-- `trailofbits/skills`: `audit-context-building`
-- `trailofbits/skills`: `semgrep`
-
-Security scanning can execute commands and clone rulesets. Review the skill and scan plan before approval.
-
-## SaaS / full-stack composition
-
-There is intentionally no giant generic "SaaS expert" skill. A SaaS is composed from the technologies it actually uses.
-
-For a provider-neutral Next.js SaaS base:
-
-```bash
-ai-stack profile saas-nextjs --project
-```
-
-Then choose only the relevant pieces:
-
-```bash
-# Data/backend: choose what the project uses
-ai-stack profile supabase --project
-# OR
-ai-stack profile prisma --project
-# OR, only with compatible project-local Drizzle Kit
-ai-stack profile drizzle-experimental --project
-
-# Auth: choose one normal path
-ai-stack profile better-auth --project
-# OR
-ai-stack profile clerk-nextjs --project
-
-# Optional providers/capabilities
-ai-stack profile stripe --project
-ai-stack profile sentry-nextjs --project
-ai-stack profile cloudflare --project
-ai-stack profile design --project
-ai-stack profile shadcn --project
-
-# Public/API-heavy systems
-ai-stack toolchain api-contracts
-```
-
-This is deliberately compositional: framework knowledge, database/auth/billing/infra knowledge and verification remain independent.
-
-## Deterministic toolchains
-
-List toolchains:
-
-```bash
-ai-stack toolchain list
-```
-
-### API contracts
+API engineering is contract-first rather than based on a generic "API expert" prompt.
 
 ```bash
 ai-stack toolchain api-contracts
 ```
 
-This installs:
+The toolchain uses:
 
 - Spectral for OpenAPI linting.
-- OpenAPI Generator CLI for validation and optional SDK/server generation.
-- oasdiff automatically when Go is available, for breaking-change detection.
-
-Schemathesis is recommended for property-based API testing but remains an explicit Python dependency rather than being silently installed.
+- OpenAPI Generator CLI for validation/code generation when appropriate.
+- oasdiff when Go is available for breaking-change checks.
+- Schemathesis as a recommended optional property-based runtime verifier.
 
 See [`docs/API-CONTRACTS.md`](docs/API-CONTRACTS.md).
 
-### Vercel CLI
-
-```bash
-ai-stack toolchain vercel-cli
-```
-
-The CLI is open source. Production deployment remains an external side effect and should always require explicit approval.
-
-## SDD
-
-Formal SDD is optional. The default stack does not force a large planning framework on every task.
-
-Install OpenSpec:
-
-```bash
-./ai-stack bootstrap --with-sdd
-```
-
-Initialize it only in projects that benefit from change/spec tracking:
-
-```bash
-cd ~/projects/my-app
-openspec init
-```
-
-For small tasks, acceptance criteria + tests are usually sufficient.
-
-## Initialize an existing project
-
-This command adds only missing portable context templates; it will never replace an existing `AGENTS.md` or `CONTEXT.md`.
-
-```bash
-./ai-stack init ~/projects/my-app
-```
-
-For a project that should also use OpenSpec:
-
-```bash
-./ai-stack init ~/projects/my-app --sdd
-```
-
-Then edit the generated files. Generic templates should not remain generic.
-
 ## Browser verification
 
-Install both browser layers:
-
 ```bash
-./ai-stack bootstrap --with-browser
+ai-stack bootstrap --with-browser
 ```
 
-This installs:
+Installs two different layers:
 
-- `@playwright/cli` + Playwright agent skills/browser
-- `agent-browser` + its Chrome runtime
+- Playwright CLI/browser skills for persistent E2E/regression evidence.
+- `agent-browser` for interactive/runtime agent inspection.
 
-On Linux, if `agent-browser install` reports missing system libraries, run:
+The Next.js `next-dev-loop` uses `agent-browser` together with Next.js runtime introspection.
+
+## Context / SDD
+
+Initialize portable repository context without overwriting existing files:
 
 ```bash
-agent-browser install --with-deps
+ai-stack init ~/projects/my-app
 ```
 
-Use browser exploration for feedback while keeping normal Playwright tests in the target project's own test suite.
+With optional OpenSpec initialization:
+
+```bash
+ai-stack bootstrap --with-sdd
+ai-stack init ~/projects/my-app --sdd
+```
+
+Formal SDD is not forced onto trivial tasks; acceptance criteria + deterministic verification are often enough.
 
 ## Pi
 
-Pi is optional. OpenCode is the default daily-driver harness; Pi is included as a minimal alternative and harness-engineering laboratory.
+OpenCode is the default daily-driver harness. Pi remains an optional minimal alternative and harness-engineering laboratory:
 
 ```bash
-./ai-stack bootstrap --with-pi
+ai-stack bootstrap --with-pi
 pi
 ```
 
-The portable skill layer is targeted at both harnesses when Pi is present.
+The portable `.agents/skills` layer targets both when Pi is installed.
 
-## What is deliberately NOT installed
+## What is deliberately not universal
 
-- BMAD by default
-- Superpowers by default
-- LangGraph/CrewAI/AutoGen
-- swarm or "company of agents" presets
+The core does not automatically install:
+
+- BMAD / Superpowers / heavy SDLC frameworks
+- LangGraph / CrewAI / AutoGen
+- agent swarms
 - large MCP packs
-- vector-memory/RAG for every repository
+- repository-wide vector-memory/RAG
 - arbitrary mega skill packs
 - infinite Ralph loops
-- framework/provider skills globally when the project does not use them
-- unstable ORM releases merely to obtain agent integrations
+- provider/framework context unrelated to the project
+- experimental ORM releases merely to obtain agent integrations
 
-Those can be justified by a concrete problem later. They are not universal prerequisites.
-
-## Update skills
-
-```bash
-npx skills update -g -y
-```
-
-Review upstream changes before using updated skills in sensitive workflows.
+These can be added when a concrete problem justifies the complexity.
 
 ## Repository layout
 
@@ -409,15 +289,19 @@ Review upstream changes before using updated skills in sensitive workflows.
 ├── docs/
 │   ├── API-CONTRACTS.md
 │   ├── ARCHITECTURE.md
+│   ├── CAPABILITIES.md
 │   ├── PROFILES.md
 │   └── SECURITY.md
 ├── profiles/
 ├── scripts/
+│   ├── detect.sh
+│   ├── apply.sh
+│   └── ...
 └── templates/
 ```
 
-See `docs/ARCHITECTURE.md` for design rationale, `docs/PROFILES.md` for profile composition, `docs/API-CONTRACTS.md` for contract-driven API verification, and `docs/SECURITY.md` for the skill/tool supply-chain policy.
+See [`docs/CAPABILITIES.md`](docs/CAPABILITIES.md) for the routing/detection model.
 
 ## License
 
-The original code and documentation in this repository are MIT licensed. Third-party tools and skills retain their own licenses; this project installs them from their upstream sources and does not relicense them.
+The original code and documentation in this repository are MIT licensed. Third-party tools and skills retain their own licenses; this project installs them from upstream sources and does not relicense them.
