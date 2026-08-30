@@ -68,6 +68,15 @@ EOF
 
 has npm || die "npm/npx is required."
 
+if [[ "$SCOPE" == "project" ]]; then
+  project_dir="$(pwd -P)"
+  home_dir="$(cd -- "$HOME" && pwd -P)"
+  [[ "$project_dir" != "$home_dir" ]] || die "--project must be run from the target project directory, not from HOME ($HOME). cd into the repository first."
+  if has git && ! git rev-parse --show-toplevel >/dev/null 2>&1; then
+    warn "Current directory is not inside a Git repository. Project-local skills will still be installed here; verify this is intentional."
+  fi
+fi
+
 agents=(opencode)
 if has pi; then
   agents+=(pi)
@@ -208,6 +217,7 @@ profile_sentry_nextjs() {
 }
 
 profile_saas_nextjs() {
+  require_project_scope "saas-nextjs"
   profile_core
   profile_nextjs
   profile_security
