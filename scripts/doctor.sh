@@ -56,9 +56,10 @@ echo
 printf '%s\n' "Optional API/deployment toolchains:"
 check_optional spectral "Spectral"
 check_optional openapi-generator-cli "OpenAPI Generator CLI"
+check_optional java "Java (OpenAPI Generator runtime)"
 check_optional oasdiff "oasdiff"
+check_optional go "Go (optional oasdiff installer)"
 check_optional vercel "Vercel CLI"
-check_optional go "Go (used for optional oasdiff install)"
 
 echo
 if [[ -d "$HOME/.config/opencode/skills" ]]; then
