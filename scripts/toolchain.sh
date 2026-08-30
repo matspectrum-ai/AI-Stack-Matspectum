@@ -38,6 +38,10 @@ install_api_contracts() {
     ok "OpenAPI Generator CLI already installed: $(openapi-generator-cli version 2>/dev/null || echo present)"
   fi
 
+  if ! has java; then
+    warn "Java is not installed. OpenAPI Generator's normal CLI path requires a Java runtime; use its container workflow or install Java before generating/validating."
+  fi
+
   mkdir -p "$HOME/.local/bin"
   if has go; then
     info "Installing oasdiff into ~/.local/bin using Go"
