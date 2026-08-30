@@ -1,40 +1,109 @@
 # Skill Profiles
 
-AI Stack Matspectrum uses a small universal core plus project-local domain profiles. Framework/provider skills should normally be installed with `--project` so unrelated projects do not inherit irrelevant instructions.
+AI Stack Matspectrum uses a small universal core plus project-local capability profiles. Framework/provider skills should normally be installed with `--project` so unrelated projects do not inherit irrelevant instructions.
+
+Prefer:
+
+```bash
+ai-stack detect .
+```
+
+over manually collecting profiles.
 
 ## Maturity labels
 
 - **stable / official**: maintained by the framework/vendor and suitable as a normal project profile.
-- **official / optional**: official, but only useful when that provider/platform is actually used.
-- **experimental / official**: maintained upstream, but the agent surface is still moving enough that it should be pinned to the project and reviewed on upgrade.
+- **stable / community**: strong OSS source with meaningful adoption, suitable when its domain applies.
+- **official / optional**: official, but useful only for a specific capability/provider/intent.
+- **experimental / official**: maintained upstream, but the agent surface is still moving enough that it should be project-pinned and explicitly requested.
 
 ## Profile matrix
 
-| Profile | Maturity | Use when | Upstream skills |
+| Profile | Maturity | Use when | Upstream |
 |---|---|---|---|
-| `core` | stable | Most software work | Matt Pocock: diagnosing-bugs, TDD, code-review, handoff |
-| `nextjs` | stable / official | Next.js 16.3+ runtime work | Vercel/Next.js: `next-dev-loop` |
-| `design` | stable | UI creation/refinement | Anthropic frontend-design, Impeccable, Taste |
-| `design-redesign` | stable | Existing UI redesign | Impeccable + Taste redesign workflow |
-| `motion` | stable | Motion is a real product requirement | Emil Kowalski animation skills |
-| `shadcn` | official / optional | Project uses shadcn/ui | Official shadcn skill |
-| `database-postgres` | stable / official | Generic Postgres work | Supabase Postgres best practices |
-| `supabase` | stable / official | Project uses Supabase products | Supabase + Postgres best practices |
-| `prisma` | stable / official | Project uses Prisma ORM 7.x | Prisma CLI, Client API, database setup |
-| `drizzle-experimental` | experimental / official | Project already uses a compatible Drizzle Kit RC/new agent surface | Drizzle Kit bundled project skills |
-| `cloudflare` | stable / official | Workers/Pages/D1/R2/KV/Durable Objects/etc. | Cloudflare platform + Workers best practices |
-| `cloudflare-agents` | official / optional | Project uses Cloudflare Agents SDK | Cloudflare Agents SDK skill |
-| `better-auth` | stable / official | Project uses Better Auth | Better Auth best practices, security, create-auth |
-| `clerk-nextjs` | official / optional | Next.js project uses Clerk | Clerk router/setup/Next.js/testing |
-| `stripe` | official / optional | Project integrates Stripe | Official Stripe skills from docs.stripe.com |
-| `sentry-nextjs` | official / optional | Next.js project uses Sentry | Sentry Next.js SDK + tracing + logging |
-| `security` | stable | Security review/hardening | Trail of Bits audit-context-building + Semgrep |
+| `core` | stable / community | Most software work | Matt Pocock diagnosing-bugs, TDD, code-review, handoff |
 | `long-autonomy` | emerging | Long tasks need observable completion gates | Unlazy |
-| `saas-nextjs` | stable composition | Provider-neutral Next.js SaaS base | core + nextjs + security |
+| `security` | stable / community | Security review/hardening | Trail of Bits |
+| `nextjs` | stable / official | Next.js 16.3+ runtime work | `vercel/next.js:next-dev-loop` |
+| `nextjs-cache-adoption` | official / optional | Intentionally migrate to Cache Components | Vercel/Next.js |
+| `nextjs-cache-optimize` | official / optional | Optimize Cache Components/PPR shell/navigation | Vercel/Next.js |
+| `nextjs-partial-prefetch` | official / optional | Adopt/verify Partial Prefetching | Vercel/Next.js |
+| `react` | stable / official | React/Next performance and rendering/data patterns | Vercel Labs `vercel-react-best-practices` |
+| `react-components` | stable / official | Scalable React component APIs/composition | Vercel Labs `vercel-composition-patterns` |
+| `react-view-transitions` | official / optional | Native React/Next View Transitions | Vercel Labs |
+| `vercel-web-design` | official / optional | Audit UI/UX/a11y against Vercel Web Interface Guidelines | Vercel Labs |
+| `vite` | stable / community | Project uses Vite | Anthony Fu |
+| `vitest` | stable / community | Project uses Vitest | Anthony Fu |
+| `web-quality` | stable / community | Broad web quality audit | Addy Osmani |
+| `web-performance` | stable / community | Focused web performance work | Addy Osmani |
+| `design` | stable / community | UI creation/refinement | Anthropic Frontend Design + Impeccable + Taste |
+| `design-redesign` | stable / community | Existing UI redesign | Impeccable + Taste |
+| `motion` | stable / community | Motion is a real product requirement | Emil Kowalski |
+| `shadcn` | stable / official | Project uses shadcn/ui | shadcn/ui |
+| `database-postgres` | stable / official | Generic Postgres work | Supabase Postgres best practices |
+| `supabase` | stable / official | Project uses Supabase products | Supabase |
+| `prisma` | stable / official | Project uses Prisma | Prisma |
+| `drizzle-experimental` | experimental / official | Compatible local Drizzle agent surface | Drizzle Kit bundled skills |
+| `cloudflare` | stable / official | Workers/Pages/D1/R2/KV/Durable Objects/etc. | Cloudflare |
+| `cloudflare-agents` | official / optional | Project uses Cloudflare Agents SDK | Cloudflare |
+| `vercel-optimize` | official / optional | Metrics-first audit of a deployed Vercel project | Vercel Labs |
+| `better-auth` | stable / official | Project uses Better Auth | Better Auth |
+| `clerk-nextjs` | official / optional | Next.js project uses Clerk | Clerk |
+| `stripe` | official / optional | Project integrates Stripe | Stripe docs skills |
+| `sentry-nextjs` | official / optional | Next.js project uses Sentry | Sentry |
+| `saas-nextjs` | convenience preset | Provider-neutral Next.js SaaS bootstrap | core + nextjs + security |
+
+## React / UI routing
+
+For a normal React project, `detect` recommends:
+
+```text
+react
+react-components
+```
+
+These solve different problems:
+
+- `react` -> performance, async/data patterns, server/client rendering and bundle behavior.
+- `react-components` -> component API architecture, compound components, state lifting and composition.
+
+Intent-dependent UI profiles remain optional:
+
+- `vercel-web-design` -> audit against interface/UX/a11y rules.
+- `design` -> generate/refine visual direction.
+- `motion` -> animation and motion design.
+- `react-view-transitions` -> native React/Next View Transition implementation.
+- `web-quality` / `web-performance` -> evidence-led quality and performance work.
+
+Do not treat these as synonyms or invoke all of them for every UI task.
+
+### Vercel Labs license hygiene
+
+The individual `vercel-react-best-practices`, `vercel-composition-patterns` and `vercel-react-view-transitions` manifests declare MIT. The parent `vercel-labs/agent-skills` repository also declares MIT in README metadata, but its top-level LICENSE file is still unresolved upstream as of August 2026.
+
+`web-design-guidelines` fetches its actual rule source from `vercel-labs/web-interface-guidelines`, which has a normal MIT license. AI Stack keeps this profile opt-in and does not vendor/relicense the upstream repository.
+
+## Next.js routing
+
+The universal Next.js profile is:
+
+```bash
+ai-stack profile nextjs --project
+```
+
+It installs `next-dev-loop`, which verifies a running Next.js app through both framework runtime introspection and a real browser.
+
+The other Next.js skills are task-specific:
+
+```bash
+ai-stack profile nextjs-cache-adoption --project
+ai-stack profile nextjs-cache-optimize --project
+ai-stack profile nextjs-partial-prefetch --project
+```
+
+Do not install migration/optimization skills just because Next.js is present.
 
 ## Backend / ORM routing
-
-Do not install multiple ORM profiles merely because they exist.
 
 ### Prisma
 
@@ -42,15 +111,7 @@ Do not install multiple ORM profiles merely because they exist.
 ai-stack profile prisma --project
 ```
 
-The official Prisma skill repository is intentionally used even though its GitHub star count is small: domain authority matters more here than repository popularity, and individual Prisma skills have substantial installs in the Agent Skills ecosystem.
-
-The profile installs:
-
-- `prisma-cli`
-- `prisma-client-api`
-- `prisma-database-setup`
-
-These cover migrations/CLI behavior, query/client usage, and database-provider setup without pulling unrelated Prisma Platform skills into every session.
+Installs focused Prisma CLI, Client API and database setup skills.
 
 ### Drizzle
 
@@ -58,9 +119,7 @@ These cover migrations/CLI behavior, query/client usage, and database-provider s
 ai-stack profile drizzle-experimental --project
 ```
 
-This profile does **not** install a new Drizzle version. It requires `./node_modules/.bin/drizzle-kit` from the target project and runs its bundled `skills` command.
-
-Reason: Drizzle's official agent skills are real, but the packaging is still being actively redesigned around the RC/next-generation Drizzle Kit surface. The stack therefore treats them as project-pinned experimental context rather than a global default.
+This profile does not install a new Drizzle version. It requires the target project's own `./node_modules/.bin/drizzle-kit` and invokes its bundled skill surface. Experimental profiles are never auto-applied.
 
 ## Infrastructure routing
 
@@ -70,110 +129,44 @@ Reason: Drizzle's official agent skills are real, but the packaging is still bei
 ai-stack profile cloudflare --project
 ```
 
-Installs the official Cloudflare platform router plus `workers-best-practices`. Use for Workers, Pages, D1, R2, KV, Durable Objects, Queues, Workflows, Wrangler, security and related platform work.
-
-If the application specifically builds agents on Cloudflare:
-
-```bash
-ai-stack profile cloudflare-agents --project
-```
-
-Do not load `agents-sdk` in a normal Worker that does not use the Agents SDK.
+Add `cloudflare-agents` only if the project actually uses the Agents SDK.
 
 ### Vercel
 
-The strict OSS stack does not currently install `vercel-labs/agent-skills/deploy-to-vercel` because the repository still lacks a top-level license file despite an MIT statement in its README. Instead, use the Apache-2.0 Vercel CLI as a deterministic toolchain:
+Use deterministic Vercel operations through:
 
 ```bash
 ai-stack toolchain vercel-cli
 ```
 
-Deployment remains an external side effect; production deployment requires explicit user approval.
+For an already linked/deployed Vercel project, `vercel-optimize` is an optional metrics-first analysis skill, not a universal frontend skill.
 
 ## Observability
 
-### Sentry + Next.js
-
 ```bash
 ai-stack profile sentry-nextjs --project
 ```
 
-Installs official Sentry skills for Next.js setup, tracing and logging. Production issue fixing (`sentry-fix-issues`) is intentionally not installed by default because it additionally relies on access to Sentry through MCP and therefore expands permissions/data access.
+Production issue fixing that needs Sentry MCP access remains outside the default profile because it expands permissions/data access.
 
-## Next.js
+## API engineering
 
-Install into the project:
-
-```bash
-ai-stack profile nextjs --project
-```
-
-The official Next.js `next-dev-loop` skill is a runtime verification workflow, not a replacement for framework documentation. Current Next.js versions bundle version-matched framework docs; workflow skills sequence runtime inspection and verification.
-
-`next-dev-loop` currently requires:
-
-- Next.js 16.3+
-- Turbopack
-- `agent-browser` >= 0.31.1
-
-Install browser tooling with:
+APIs use deterministic contracts rather than a generic backend persona:
 
 ```bash
-ai-stack bootstrap --with-browser
-```
-
-## SaaS composition
-
-There is intentionally no generic `saas` skill. SaaS architecture is composed from the actual framework and providers.
-
-Start a Next.js SaaS project with:
-
-```bash
-ai-stack profile saas-nextjs --project
-```
-
-Then add only what the project uses.
-
-Typical choices:
-
-```bash
-# Data / backend
-ai-stack profile supabase --project
-# OR
-ai-stack profile prisma --project
-# OR, when the project already runs the compatible Drizzle agent surface
-ai-stack profile drizzle-experimental --project
-
-# Auth: choose the actual provider
-ai-stack profile better-auth --project
-# OR
-ai-stack profile clerk-nextjs --project
-
-# Billing only when used
-ai-stack profile stripe --project
-
-# Observability only when used
-ai-stack profile sentry-nextjs --project
-
-# Infrastructure only when used
-ai-stack profile cloudflare --project
-
-# Public/API-heavy SaaS
 ai-stack toolchain api-contracts
 ```
 
-For gateways or payment systems that do not use Stripe, prefer the system's own OpenAPI/contracts, integration tests and domain documentation rather than forcing Stripe knowledge into the agent context.
+The contract loop is OpenAPI -> lint -> breaking-change check -> implementation -> integration/contract tests -> optional property-based runtime testing.
 
 ## Routing rule
 
-Treat profiles as dependency-specific context, not badges to collect.
-
 ```text
 Task
-  -> workflow skill (debug/TDD/review)
-  -> framework skill (Next.js)
-  -> backend/provider skill (Prisma/Supabase/Cloudflare/etc.)
-  -> deterministic verifier (tests/types/browser/contracts)
+  -> workflow capability
+  -> framework/runtime capability
+  -> domain/provider capability
+  -> deterministic verification
 ```
 
-Prefer the smallest set that covers the current project.
+Profiles are dependency-specific context, not badges to collect. Universal means broad coverage with selective activation, not loading everything at once.
