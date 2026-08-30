@@ -32,6 +32,10 @@ Framework / frontend
   nextjs-cache-adoption      Adopt Next.js Cache Components
   nextjs-cache-optimize      TDD loop for instant Cache Components navigation
   nextjs-partial-prefetch    Adopt Next.js Partial Prefetching
+  react                      Vercel React/Next performance best practices
+  react-components           Vercel scalable React composition/component patterns
+  react-view-transitions     Vercel React View Transition patterns
+  vercel-web-design          Vercel Web Interface Guidelines review skill
   vite                       Vite configuration/build knowledge
   shadcn                     Official shadcn/ui skill
 
@@ -54,6 +58,7 @@ Backend / data
 Infrastructure / platform
   cloudflare                 Cloudflare platform + Workers best practices
   cloudflare-agents          Cloudflare Agents SDK skill
+  vercel-optimize            Metrics-first Vercel cost/performance/reliability audit
 
 Authentication
   better-auth                Better Auth setup, best practices and security
@@ -163,6 +168,23 @@ profile_nextjs_partial_prefetch() {
   install_skill "https://github.com/vercel/next.js" "next-partial-prefetching-adoption"
 }
 
+profile_react() {
+  install_skill "https://github.com/vercel-labs/agent-skills" "vercel-react-best-practices"
+}
+
+profile_react_components() {
+  install_skill "https://github.com/vercel-labs/agent-skills" "vercel-composition-patterns"
+}
+
+profile_react_view_transitions() {
+  install_skill "https://github.com/vercel-labs/agent-skills" "vercel-react-view-transitions"
+}
+
+profile_vercel_web_design() {
+  install_skill "https://github.com/vercel-labs/agent-skills" "web-design-guidelines"
+  warn "License hygiene note: vercel-labs/agent-skills declares MIT but still lacks a merged top-level LICENSE file. The fetched Web Interface Guidelines source repository itself is MIT-licensed. Keep this profile opt-in until upstream resolves the repository-level license metadata."
+}
+
 profile_vite() {
   install_skill "https://github.com/antfu/skills" "vite"
 }
@@ -232,6 +254,11 @@ profile_cloudflare_agents() {
   install_skill "https://github.com/cloudflare/skills" "agents-sdk"
 }
 
+profile_vercel_optimize() {
+  install_skill "https://github.com/vercel-labs/agent-skills" "vercel-optimize"
+  info "vercel-optimize requires a linked/authenticated Vercel project and current Vercel CLI metrics/usage surfaces."
+}
+
 profile_better_auth() {
   install_skill "https://github.com/better-auth/skills" "better-auth-best-practices"
   install_skill "https://github.com/better-auth/skills" "better-auth-security-best-practices"
@@ -272,6 +299,10 @@ case "$PROFILE" in
   nextjs-cache-adoption) profile_nextjs_cache_adoption ;;
   nextjs-cache-optimize) profile_nextjs_cache_optimize ;;
   nextjs-partial-prefetch) profile_nextjs_partial_prefetch ;;
+  react) profile_react ;;
+  react-components) profile_react_components ;;
+  react-view-transitions) profile_react_view_transitions ;;
+  vercel-web-design) profile_vercel_web_design ;;
   vite) profile_vite ;;
   vitest) profile_vitest ;;
   web-quality) profile_web_quality ;;
@@ -286,6 +317,7 @@ case "$PROFILE" in
   drizzle-experimental) profile_drizzle_experimental ;;
   cloudflare) profile_cloudflare ;;
   cloudflare-agents) profile_cloudflare_agents ;;
+  vercel-optimize) profile_vercel_optimize ;;
   better-auth) profile_better_auth ;;
   clerk-nextjs) profile_clerk_nextjs ;;
   stripe) profile_stripe ;;
