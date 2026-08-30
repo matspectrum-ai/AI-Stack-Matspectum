@@ -2,7 +2,7 @@
 
 A portable, open-source-first AI engineering stack for software development.
 
-The goal is not to install every agent framework. It is to provide a small universal core and add domain skills only when a project needs them.
+The goal is not to install every agent framework. It is to provide a small universal core and add domain skills or deterministic toolchains only when a project needs them.
 
 ## Architecture
 
@@ -14,7 +14,8 @@ OpenCode (default harness)
    |
    +-- AGENTS.md / repository context
    +-- portable Agent Skills
-   +-- CLI tools
+   +-- framework/provider profiles
+   +-- deterministic CLI toolchains
    +-- project-native tests / lint / typecheck
    +-- Playwright CLI for persistent E2E verification
    +-- agent-browser for interactive/runtime verification
@@ -36,6 +37,7 @@ Principles:
 - MCP is reserved for remote/structured integrations that actually need it.
 - Long-running autonomy must have gates, budgets and stop conditions.
 - Third-party skills are dependencies: inspect source, license, scripts and permissions.
+- Official but immature agent surfaces are marked experimental instead of being promoted to defaults.
 
 ## Quick start
 
@@ -66,6 +68,18 @@ opencode
 
 Use `/connect` in the TUI. This repository deliberately does not write API keys or replace your existing OpenCode configuration.
 
+## Commands
+
+```bash
+ai-stack bootstrap [options]
+ai-stack doctor
+ai-stack profile <name|list> [--project]
+ai-stack toolchain <name|list>
+ai-stack init [path] [--sdd]
+```
+
+Profiles install contextual Agent Skills. Toolchains install deterministic CLIs. They are intentionally separate concepts.
+
 ## Skill profiles
 
 List profiles:
@@ -86,14 +100,17 @@ Framework/domain/provider profiles should usually be installed per project:
 
 ```bash
 cd ~/projects/my-app
-/path/to/AI-Stack-Matspectum/ai-stack profile nextjs --project
-/path/to/AI-Stack-Matspectum/ai-stack profile supabase --project
-/path/to/AI-Stack-Matspectum/ai-stack profile better-auth --project
-/path/to/AI-Stack-Matspectum/ai-stack profile clerk-nextjs --project
-/path/to/AI-Stack-Matspectum/ai-stack profile stripe --project
+ai-stack profile nextjs --project
+ai-stack profile prisma --project
+ai-stack profile supabase --project
+ai-stack profile cloudflare --project
+ai-stack profile better-auth --project
+ai-stack profile clerk-nextjs --project
+ai-stack profile stripe --project
+ai-stack profile sentry-nextjs --project
 ```
 
-See [`docs/PROFILES.md`](docs/PROFILES.md) for the full routing matrix.
+See [`docs/PROFILES.md`](docs/PROFILES.md) for maturity labels and the full routing matrix.
 
 ### Core
 
@@ -112,65 +129,25 @@ The `nextjs` profile installs the official `vercel/next.js` `next-dev-loop` work
 ai-stack profile nextjs --project
 ```
 
-Current `next-dev-loop` is intended for Next.js 16.3+ and combines Next.js runtime introspection with `agent-browser`. The stack therefore treats browser tooling as two different layers:
+Current `next-dev-loop` is intended for Next.js 16.3+ and combines Next.js runtime introspection with `agent-browser`.
 
-- Playwright CLI/tests: persistent E2E and regression evidence.
-- `agent-browser`: interactive agent/runtime inspection.
+### Backend / ORM
 
-Install both browser layers with:
-
-```bash
-ai-stack bootstrap --with-browser
-```
-
-### SaaS / full-stack composition
-
-There is intentionally no giant generic "SaaS expert" skill. A SaaS is composed from the technologies it actually uses.
-
-For a provider-neutral Next.js SaaS base:
+Prisma uses the official Prisma Agent Skills:
 
 ```bash
-ai-stack profile saas-nextjs --project
+ai-stack profile prisma --project
 ```
 
-This adds:
+This installs focused CLI, Client API and database-setup skills rather than the whole Prisma catalog.
 
-```text
-core workflow skills
-+ official Next.js runtime workflow
-+ security workflow
-```
-
-Then choose only the providers in the project:
+Drizzle's Agent Skills are official but still tied to its evolving RC/next-generation Drizzle Kit surface, so the stack marks them experimental and only invokes the project's own local CLI:
 
 ```bash
-# Supabase products + Postgres
-ai-stack profile supabase --project
-
-# Pick ONE normal auth path
-ai-stack profile better-auth --project
-# OR
-ai-stack profile clerk-nextjs --project
-
-# Only if Stripe is actually used
-ai-stack profile stripe --project
-
-# UI/design only when relevant
-ai-stack profile design --project
-ai-stack profile shadcn --project
+ai-stack profile drizzle-experimental --project
 ```
 
-This is deliberately compositional: framework knowledge, database/auth/billing knowledge and verification remain independent.
-
-### Design
-
-Complementary UI/design capabilities:
-
-- `anthropics/skills`: `frontend-design` — original UI direction.
-- `pbakaus/impeccable`: `impeccable` — product UI critique/refinement.
-- `leonxlnx/taste-skill`: `design-taste-frontend` — landing/marketing/high-end visual work.
-
-Do not invoke all three for every frontend task. Route by intent.
+The stack will not silently install a new/RC Drizzle version just to obtain skills.
 
 ### Supabase / Postgres
 
@@ -186,7 +163,35 @@ Full Supabase project:
 ai-stack profile supabase --project
 ```
 
-The full profile includes the official Supabase skill for Database, Auth, Edge Functions, Realtime, Storage, SSR integrations and related workflows plus the Postgres best-practices skill.
+### Infrastructure / platform
+
+Cloudflare has an official Apache-2.0 Agent Skills repository:
+
+```bash
+ai-stack profile cloudflare --project
+```
+
+For projects specifically using Cloudflare Agents SDK:
+
+```bash
+ai-stack profile cloudflare-agents --project
+```
+
+For Vercel deployment, the strict OSS stack uses the Apache-2.0 Vercel CLI rather than vendoring the current `vercel-labs/agent-skills` repository, whose top-level license-file hygiene is still unresolved:
+
+```bash
+ai-stack toolchain vercel-cli
+```
+
+### Observability
+
+For a Next.js application using Sentry:
+
+```bash
+ai-stack profile sentry-nextjs --project
+```
+
+This installs official Sentry Next.js setup, tracing and logging guidance. Production issue-fixing skills that require Sentry MCP access are deliberately not enabled by default.
 
 ### Authentication
 
@@ -212,6 +217,16 @@ ai-stack profile stripe --project
 
 This installs Stripe's official Agent Skills from `https://docs.stripe.com`. It is not part of the universal core because many SaaS/payment systems do not use Stripe.
 
+### Design
+
+Complementary UI/design capabilities:
+
+- `anthropics/skills`: `frontend-design` — original UI direction.
+- `pbakaus/impeccable`: `impeccable` — product UI critique/refinement.
+- `leonxlnx/taste-skill`: `design-taste-frontend` — landing/marketing/high-end visual work.
+
+Do not invoke all three for every frontend task. Route by intent.
+
 ### Long autonomy
 
 - `leonxlnx/unlazy`: `unlazy`
@@ -225,12 +240,75 @@ Use on substantial tasks where completion needs observable gates. Do not make ev
 
 Security scanning can execute commands and clone rulesets. Review the skill and scan plan before approval.
 
-### Motion
+## SaaS / full-stack composition
 
-- `emilkowalski/skills`: `animate`
-- `emilkowalski/skills`: `review-animations`
+There is intentionally no giant generic "SaaS expert" skill. A SaaS is composed from the technologies it actually uses.
 
-Use only for interfaces where motion is a real requirement.
+For a provider-neutral Next.js SaaS base:
+
+```bash
+ai-stack profile saas-nextjs --project
+```
+
+Then choose only the relevant pieces:
+
+```bash
+# Data/backend: choose what the project uses
+ai-stack profile supabase --project
+# OR
+ai-stack profile prisma --project
+# OR, only with compatible project-local Drizzle Kit
+ai-stack profile drizzle-experimental --project
+
+# Auth: choose one normal path
+ai-stack profile better-auth --project
+# OR
+ai-stack profile clerk-nextjs --project
+
+# Optional providers/capabilities
+ai-stack profile stripe --project
+ai-stack profile sentry-nextjs --project
+ai-stack profile cloudflare --project
+ai-stack profile design --project
+ai-stack profile shadcn --project
+
+# Public/API-heavy systems
+ai-stack toolchain api-contracts
+```
+
+This is deliberately compositional: framework knowledge, database/auth/billing/infra knowledge and verification remain independent.
+
+## Deterministic toolchains
+
+List toolchains:
+
+```bash
+ai-stack toolchain list
+```
+
+### API contracts
+
+```bash
+ai-stack toolchain api-contracts
+```
+
+This installs:
+
+- Spectral for OpenAPI linting.
+- OpenAPI Generator CLI for validation and optional SDK/server generation.
+- oasdiff automatically when Go is available, for breaking-change detection.
+
+Schemathesis is recommended for property-based API testing but remains an explicit Python dependency rather than being silently installed.
+
+See [`docs/API-CONTRACTS.md`](docs/API-CONTRACTS.md).
+
+### Vercel CLI
+
+```bash
+ai-stack toolchain vercel-cli
+```
+
+The CLI is open source. Production deployment remains an external side effect and should always require explicit approval.
 
 ## SDD
 
@@ -310,6 +388,7 @@ The portable skill layer is targeted at both harnesses when Pi is present.
 - arbitrary mega skill packs
 - infinite Ralph loops
 - framework/provider skills globally when the project does not use them
+- unstable ORM releases merely to obtain agent integrations
 
 Those can be justified by a concrete problem later. They are not universal prerequisites.
 
@@ -328,6 +407,7 @@ Review upstream changes before using updated skills in sensitive workflows.
 ├── ai-stack
 ├── AGENTS.md
 ├── docs/
+│   ├── API-CONTRACTS.md
 │   ├── ARCHITECTURE.md
 │   ├── PROFILES.md
 │   └── SECURITY.md
@@ -336,7 +416,7 @@ Review upstream changes before using updated skills in sensitive workflows.
 └── templates/
 ```
 
-See `docs/ARCHITECTURE.md` for the design rationale, `docs/PROFILES.md` for profile composition and `docs/SECURITY.md` for the skill supply-chain policy.
+See `docs/ARCHITECTURE.md` for design rationale, `docs/PROFILES.md` for profile composition, `docs/API-CONTRACTS.md` for contract-driven API verification, and `docs/SECURITY.md` for the skill/tool supply-chain policy.
 
 ## License
 
