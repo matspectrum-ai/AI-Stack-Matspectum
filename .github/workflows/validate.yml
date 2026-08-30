@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Validate shell syntax and command routing
+      - name: Validate shell syntax, routing and detection
         shell: bash
         run: |
           bash -n ai-stack scripts/*.sh
@@ -21,13 +21,41 @@ jobs:
           ./ai-stack toolchain list >/dev/null
           ./ai-stack bootstrap --help >/dev/null
           ./ai-stack init --help >/dev/null
+          ./ai-stack detect --help >/dev/null
+          ./ai-stack apply --help >/dev/null
 
-          # bootstrap installs ai-stack as a symlink in ~/.local/bin. Verify the
-          # installed form resolves back to this repository instead of looking
-          # for ~/.local/bin/scripts/*.
+          # Verify the installed symlink form resolves back to this repository.
           mkdir -p "$HOME/.local/bin"
           ln -s "$PWD/ai-stack" "$HOME/.local/bin/ai-stack"
           "$HOME/.local/bin/ai-stack" profile list >/dev/null
           "$HOME/.local/bin/ai-stack" toolchain list >/dev/null
+          "$HOME/.local/bin/ai-stack" detect --help >/dev/null
+
+          # Deterministic detection fixture: no external network calls required.
+          fixture="$(mktemp -d)"
+          cat > "$fixture/package.json" <<'JSON'
+          {
+            "dependencies": {
+              "next": "^16.3.0",
+              "react": "^19.0.0",
+              "@prisma/client": "^7.0.0"
+            },
+            "devDependencies": {
+              "vitest": "^5.0.0"
+            }
+          }
+          JSON
+          printf '{}\n' > "$fixture/components.json"
+          printf 'openapi: 3.1.0\ninfo:\n  title: fixture\n  version: 1.0.0\npaths: {}\n' > "$fixture/openapi.yaml"
+
+          plan="$(./ai-stack detect "$fixture" --machine)"
+          grep -q '^profile:nextjs$' <<<"$plan"
+          grep -q '^profile:react$' <<<"$plan"
+          grep -q '^profile:react-components$' <<<"$plan"
+          grep -q '^profile:prisma$' <<<"$plan"
+          grep -q '^profile:vitest$' <<<"$plan"
+          grep -q '^profile:shadcn$' <<<"$plan"
+          grep -q '^optional-profile:vercel-web-design$' <<<"$plan"
+          grep -q '^toolchain:api-contracts$' <<<"$plan"
 
           echo "AI Stack validation: PASS"
