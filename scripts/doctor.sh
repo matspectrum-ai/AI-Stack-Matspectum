@@ -53,6 +53,14 @@ check_optional rg "ripgrep"
 check_optional jq "jq"
 
 echo
+printf '%s\n' "Optional API/deployment toolchains:"
+check_optional spectral "Spectral"
+check_optional openapi-generator-cli "OpenAPI Generator CLI"
+check_optional oasdiff "oasdiff"
+check_optional vercel "Vercel CLI"
+check_optional go "Go (used for optional oasdiff install)"
+
+echo
 if [[ -d "$HOME/.config/opencode/skills" ]]; then
   count="$(find "$HOME/.config/opencode/skills" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l)"
   ok "OpenCode global skills directory exists ($count directories)"
