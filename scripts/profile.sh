@@ -34,6 +34,8 @@ Framework / frontend
   nextjs-partial-prefetch    Adopt Next.js Partial Prefetching
   react                      Vercel React/Next performance best practices
   react-components           Vercel scalable React composition/component patterns
+  building-components        Vercel modern accessible/composable UI component engineering
+  ui-components              Building Components + React composition patterns
   react-view-transitions     Vercel React View Transition patterns
   vercel-web-design          Vercel Web Interface Guidelines review skill
   vite                       Vite configuration/build knowledge
@@ -176,6 +178,15 @@ profile_react_components() {
   install_skill "https://github.com/vercel-labs/agent-skills" "vercel-composition-patterns"
 }
 
+profile_building_components() {
+  install_skill "https://github.com/vercel/components.build" "building-components"
+}
+
+profile_ui_components() {
+  profile_building_components
+  profile_react_components
+}
+
 profile_react_view_transitions() {
   install_skill "https://github.com/vercel-labs/agent-skills" "vercel-react-view-transitions"
 }
@@ -301,6 +312,8 @@ case "$PROFILE" in
   nextjs-partial-prefetch) profile_nextjs_partial_prefetch ;;
   react) profile_react ;;
   react-components) profile_react_components ;;
+  building-components) profile_building_components ;;
+  ui-components) profile_ui_components ;;
   react-view-transitions) profile_react_view_transitions ;;
   vercel-web-design) profile_vercel_web_design ;;
   vite) profile_vite ;;
