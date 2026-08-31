@@ -91,6 +91,7 @@ if package_has next; then
   profile nextjs
   profile react
   profile react-components
+  optional_profile building-components
   optional_profile vercel-web-design
   optional_profile web-quality
   optional_profile web-performance
@@ -112,6 +113,7 @@ elif package_has react || package_has react-dom; then
   signal "React"
   profile react
   profile react-components
+  optional_profile building-components
   optional_profile vercel-web-design
   optional_profile web-quality
   optional_profile web-performance
